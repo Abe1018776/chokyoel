@@ -1,6 +1,14 @@
-import type { SefariaTextResponse, SefariaCalendarsResponse } from '../types';
+import type {
+  SefariaTextResponse,
+  SefariaCalendarsResponse,
+  SefariaCollection,
+  SefariaSheet
+} from '../types';
 
 const SEFARIA_API_BASE = 'https://www.sefaria.org/api';
+
+// The slug for the Chok LeYisrael collection on Sefaria
+export const CHOK_COLLECTION_SLUG = 'חק-לישראל';
 
 class SefariaService {
   private cache = new Map<string, { data: unknown; timestamp: number }>();
@@ -92,6 +100,116 @@ class SefariaService {
       },
       aliyot: parsha.extraDetails?.aliyot
     };
+  }
+
+  // Fetch a collection by slug
+  async getCollection(slug: string): Promise<SefariaCollection> {
+    const cacheKey = `collection:${slug}`;
+    const cached = this.getCached<SefariaCollection>(cacheKey);
+    if (cached) return cached;
+
+    const url = `${SEFARIA_API_BASE}/collections/${encodeURIComponent(slug)}`;
+
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch collection: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    this.setCache(cacheKey, data);
+    return data;
+  }
+
+  // Fetch the Chok LeYisrael collection
+  async getChokCollection(): Promise<SefariaCollection> {
+    return this.getCollection(CHOK_COLLECTION_SLUG);
+  }
+
+  // Fetch a specific sheet by ID
+  async getSheet(sheetId: number): Promise<SefariaSheet> {
+    const cacheKey = `sheet:${sheetId}`;
+    const cached = this.getCached<SefariaSheet>(cacheKey);
+    if (cached) return cached;
+
+    const url = `${SEFARIA_API_BASE}/sheets/${sheetId}`;
+
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sheet: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    this.setCache(cacheKey, data);
+    return data;
+  }
+
+  // Find Chok sheets for a specific parsha
+  async getChokSheetsForParsha(parshaName: string): Promise<SefariaSheet[]> {
+    try {
+      const collection = await this.getChokCollection();
+
+      // Filter sheets that match the parsha name (in Hebrew or English)
+      const matchingSheets = collection.sheets.filter(sheet => {
+        const title = sheet.title.toLowerCase();
+        const parshaLower = parshaName.toLowerCase();
+        return title.includes(parshaLower) ||
+               title.includes('פרשת') ||
+               sheet.topics?.some(t => t.asTyped.toLowerCase().includes(parshaLower));
+      });
+
+      // Fetch full sheet data for matching sheets
+      const sheets = await Promise.all(
+        matchingSheets.slice(0, 7).map(s => this.getSheet(s.id))
+      );
+
+      return sheets;
+    } catch (error) {
+      console.error('Failed to fetch Chok sheets:', error);
+      return [];
+    }
+  }
+
+  // Get all Chok sheets organized by day (1-7)
+  async getChokSheetsByDay(parshaName: string): Promise<Map<number, SefariaSheet>> {
+    const sheets = await this.getChokSheetsForParsha(parshaName);
+    const byDay = new Map<number, SefariaSheet>();
+
+    // Try to parse day number from sheet titles (e.g., "יום א", "Day 1", etc.)
+    const dayPatterns = [
+      /יום\s*([אבגדהוש])/i,  // Hebrew: יום א, יום ב, etc.
+      /day\s*(\d)/i,         // English: Day 1, Day 2, etc.
+      /(\d)\s*[-–]\s*/,      // Number prefix: 1 - Title
+    ];
+
+    const hebrewDayMap: Record<string, number> = {
+      'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ש': 7
+    };
+
+    sheets.forEach(sheet => {
+      for (const pattern of dayPatterns) {
+        const match = sheet.title.match(pattern);
+        if (match) {
+          let dayNum: number;
+          if (hebrewDayMap[match[1]]) {
+            dayNum = hebrewDayMap[match[1]];
+          } else {
+            dayNum = parseInt(match[1], 10);
+          }
+          if (dayNum >= 1 && dayNum <= 7) {
+            byDay.set(dayNum, sheet);
+            break;
+          }
+        }
+      }
+    });
+
+    return byDay;
   }
 
   async getTextWithRashi(ref: string): Promise<{

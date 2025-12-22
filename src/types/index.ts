@@ -42,6 +42,55 @@ export interface SefariaCalendarsResponse {
   calendar_items: SefariaCalendarItem[];
 }
 
+// Sefaria Collection/Sheet Types
+export interface SefariaSheetSource {
+  ref?: string;
+  heRef?: string;
+  text?: {
+    he?: string;
+    en?: string;
+  };
+  comment?: string;
+  outsideText?: string;
+  outsideBiText?: {
+    he?: string;
+    en?: string;
+  };
+}
+
+export interface SefariaSheet {
+  id: number;
+  title: string;
+  status: string;
+  summary?: string;
+  sources: SefariaSheetSource[];
+  dateCreated: string;
+  dateModified: string;
+  owner: number;
+  ownerName: string;
+  views: number;
+  tags: string[];
+}
+
+export interface SefariaCollection {
+  name: string;
+  slug: string;
+  description?: string;
+  sheets: SefariaCollectionSheet[];
+  memberCount: number;
+  sheetCount: number;
+  lastModified: string;
+}
+
+export interface SefariaCollectionSheet {
+  id: number;
+  title: string;
+  status: string;
+  views: number;
+  topics: { slug: string; asTyped: string }[];
+  order?: number;
+}
+
 // Chok LeYisrael Types
 export type DayOfWeek = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'shabbat';
 

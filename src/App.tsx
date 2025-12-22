@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Trophy, Loader2 } from 'lucide-react';
+import { Trophy, Loader2, BookOpen, FileText } from 'lucide-react';
 import { Header } from './components/Header';
 import { ProgressBar } from './components/ProgressBar';
 import { DaySelector } from './components/DaySelector';
 import { SectionCard } from './components/SectionCard';
+import { SheetViewer } from './components/SheetViewer';
 import { AchievementsPanel } from './components/AchievementsPanel';
 import { useChok } from './hooks/useChok';
 
@@ -20,6 +21,13 @@ function App() {
     getCompletedDays,
     isSectionCompleted,
     todayCompletionPercent,
+    // Sheet mode
+    currentSheet,
+    isLoadingSheet,
+    useSheetMode,
+    setUseSheetMode,
+    completeSheetLearning,
+    isSheetCompleted,
   } = useChok();
 
   const [showAchievements, setShowAchievements] = useState(false);
@@ -89,7 +97,7 @@ function App() {
           completedDays={completedDays}
         />
 
-        {/* Day Info */}
+        {/* Day Info + Mode Toggle */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -103,22 +111,62 @@ function App() {
               <p className="text-sm text-gray-500">יום {selectedDay}</p>
             </div>
           </div>
+
+          {/* Mode Toggle */}
+          <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100">
+            <button
+              onClick={() => setUseSheetMode(true)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                useSheetMode
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Sefaria Sheet
+            </button>
+            <button
+              onClick={() => setUseSheetMode(false)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                !useSheetMode
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Section by Section
+            </button>
+          </div>
         </div>
 
-        {/* Sections */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-            Today's Learning Sections
-          </h3>
-          {sections.map((section) => (
-            <SectionCard
-              key={section.id}
-              section={section}
-              onComplete={completeSection}
-              isCompleted={isSectionCompleted(section.id)}
+        {/* Content - Sheet Mode or Section Mode */}
+        {useSheetMode ? (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+              Chok LeYisrael Sheet from Sefaria
+            </h3>
+            <SheetViewer
+              sheet={currentSheet}
+              isLoading={isLoadingSheet}
+              onComplete={completeSheetLearning}
+              isCompleted={isSheetCompleted()}
             />
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+              Today's Learning Sections
+            </h3>
+            {sections.map((section) => (
+              <SectionCard
+                key={section.id}
+                section={section}
+                onComplete={completeSection}
+                isCompleted={isSectionCompleted(section.id)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Completion Message */}
         {todayCompletionPercent === 100 && (
@@ -138,12 +186,12 @@ function App() {
           <p className="text-sm">
             Powered by{' '}
             <a
-              href="https://www.sefaria.org"
+              href="https://www.sefaria.org/collections/%D7%97%D7%A7-%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C"
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-300 hover:text-white underline"
             >
-              Sefaria
+              Sefaria's Chok LeYisrael Collection
             </a>
           </p>
           <p className="text-xs mt-2 text-amber-400">
