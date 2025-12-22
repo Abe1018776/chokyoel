@@ -1,0 +1,5 @@
+/* App-specific styles - most styling is in index.css with Tailwind */
+
+#root {
+  width: 100%;
+}

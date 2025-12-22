@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Merriweather:wght@400;700&display=swap');
+
+/* Custom theme */
+@theme {
+  --color-parchment-50: #fefdfb;
+  --color-parchment-100: #fdf9f3;
+  --color-parchment-200: #faf3e6;
+  --color-parchment-300: #f5e8d3;
+  --color-parchment-400: #e8d4b4;
+  --color-parchment-500: #d4b896;
+
+  --color-torah-gold: #c9a227;
+  --color-torah-brown: #5c4033;
+  --color-torah-navy: #1a365d;
+
+  --font-hebrew: 'Frank Ruhl Libre', 'David Libre', serif;
+  --font-english: 'Merriweather', Georgia, serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Merriweather', Georgia, serif;
+  background-color: #fdf9f3;
+  min-height: 100vh;
+}
+
+/* Hebrew text styling */
+.hebrew-text {
+  font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 2;
+  font-size: 1.25rem;
+}
+
+.font-hebrew {
+  font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+}
+
+/* Torah verse styling */
+.verse {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.verse:hover {
+  background-color: rgba(201, 162, 39, 0.1);
+}
+
+/* Commentary styling */
+.commentary {
+  font-size: 0.95rem;
+  color: #5c4033;
+  padding-left: 1rem;
+  border-left: 3px solid #c9a227;
+  margin: 0.5rem 0;
+}
+
+/* Progress bar animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.progress-shimmer {
+  background: linear-gradient(90deg, #c9a227 0%, #e8d4b4 50%, #c9a227 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Section cards */
+.section-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #c9a227;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fdf9f3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9a227;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a88520;
+}
